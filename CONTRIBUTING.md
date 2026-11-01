@@ -38,12 +38,12 @@ make e2e           # Playwright against a release build
 ## Workflow
 
 1. Find or open an issue. For anything non-trivial, comment first so we can agree on the approach. Read [`CLAUDE.md`](CLAUDE.md): the four working rules (think first, keep it simple, change only what you must, prove it with a check) apply to humans and agents alike.
-2. Branch from `main` using the names in [`BRANCHING.md`](BRANCHING.md) (`task/T-xxx-<slug>`, `fix/<issue>-<slug>`, `docs/<slug>`, …). Rebase to stay current; PRs are squash-merged.
+2. Fork the repository and commit to `dev` in your fork, or to a branch in your fork. Ritma has three long-lived branches (`dev`, `staging`, `main`); no other branch is pushed to the main repository ([`BRANCHING.md`](BRANCHING.md) §2). Open your PR against `dev`. Rebase on `dev` to stay current; PRs are squash-merged.
 3. Make your change with tests. If you're working from a task file, follow [`WORKFLOW.md`](WORKFLOW.md) (the 12-step flow: read, plan, implement, run, review, verify, report) and the task's Definition of Done.
 4. Commit following [`COMMIT_CONVENTION.md`](COMMIT_CONVENTION.md) (Conventional Commits with our types, scopes and refs), e.g.
    `feat(billing): apply late fee from snapshotted terms [T-412, BIL-06]`
 5. Sign off every commit (DCO): `git commit -s`. Sign the CLA once when the bot asks (see "License" below).
-6. Open a PR using the template. CI must be green. A maintainer reviews within 5 days.
+6. Open a PR against `dev` using the template. CI must be green. A maintainer reviews, and changes reach users only through the promotion path (`dev` → `staging` → `main`, BRANCHING.md §3).
 
 Enable the local commit-message hook with `git config core.hooksPath .githooks`.
 

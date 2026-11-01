@@ -1,0 +1,13 @@
+# REUSE (https://reuse.software): licence information for files that carry no header.
+# Ritma's own files are AGPL-3.0-only. Third-party code is never listed here.
+version = 1
+
+[[annotations]]
+path = [
+  "crates/**", "web/src/**", "web/e2e/**", "web/*.json", "web/*.ts", "web/*.html", "web/*.yaml",
+  "migrations/**", "scripts/**", "deploy/**", "contracts/**", "presets/**", "rfcs/**",
+  ".github/**", ".githooks/**", ".cargo/**", "spec/**", "tasks/**", "brand/**", "docs/**",
+  "*.md", "*.toml", "*.json", "*.yml", "*.yaml", "*.sh", "Makefile", "Cargo.lock", ".sqlx/**",
+]
+SPDX-FileCopyrightText = "The Ritma contributors"
+SPDX-License-Identifier = "AGPL-3.0-only"
