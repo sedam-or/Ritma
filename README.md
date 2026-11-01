@@ -112,7 +112,7 @@ Built on well-known open-source tools instead of home-made ones ([spec 24](spec/
 | M3 | **A school set up in three steps**, with the web app and the schedule screen |
 | M4–M6 | Enrolment, billing, attendance, notifications, rental, reports, privacy tools |
 | M7 | **v1.0 public release**: Docker, one-click templates, docs and a live demo |
-| M8 / M9 | Desktop app / Ritma Cloud |
+| M8 / M9 | Desktop app / Ritma Cloud *(after v1.0, v1.1)* |
 
 Details in [ROADMAP.md](ROADMAP.md).
 

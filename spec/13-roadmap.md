@@ -12,7 +12,7 @@ The milestone overview for humans is in `/ROADMAP.md`. The executable plan is `t
 | M5 Attendance & notify | E2E: check-in pass/fail paths + review; notifications delivered with fallback via mock channels |
 | M6 Rental/reports/feedback/privacy | E2E per module + DSR erase verified |
 | M7 Release | Install script on a clean VM (CI docker-in-docker) reaches `/setup`; release workflow dry-run produces signed artifacts |
-| M8 Desktop | Desktop app on CI runners (Win/macOS/Linux) boots, completes setup, backup + restore works |
-| M9 Cloud | Signup → tenant → setup; plan limits enforced; webhook-driven subscription states |
+| M8 Desktop (v1.1) | Desktop app on CI runners (Win/macOS/Linux) boots, completes setup, backup + restore works |
+| M9 Cloud (v1.1) | Signup → tenant → setup; plan limits enforced; webhook-driven subscription states |
 
 Task ID ranges: M0 `T-0xx`, M1 `T-1xx`, …, M9 `T-9xx`.

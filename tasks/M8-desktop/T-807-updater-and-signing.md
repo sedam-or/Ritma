@@ -2,7 +2,7 @@
 id: T-807
 title: Add the signed auto-updater with pre-update backup, and installer signing
 milestone: M8
-status: todo
+status: draft
 depends_on: [T-806]
 spec_refs: [DST-24, DST-05]
 estimated_size: S

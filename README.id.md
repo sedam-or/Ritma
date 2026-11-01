@@ -112,7 +112,7 @@ Dibangun di atas tool open-source yang sudah dikenal, bukan buatan sendiri ([spe
 | M3 | **Sekolah siap dalam tiga langkah**, dengan aplikasi web dan layar jadwal |
 | M4–M6 | Pendaftaran, tagihan, absensi, notifikasi, sewa, laporan, alat privasi |
 | M7 | **Rilis publik v1.0**: Docker, template sekali klik, dokumentasi dan demo langsung |
-| M8 / M9 | Aplikasi desktop / Ritma Cloud |
+| M8 / M9 | Aplikasi desktop / Ritma Cloud *(setelah v1.0, v1.1)* |
 
 Detail di [ROADMAP.md](ROADMAP.md).
 

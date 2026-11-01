@@ -1557,3 +1557,12 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** The task-index guard explicitly flags a dependency whose ID sorts after its dependent as cycle risk, and it must not be weakened. T-115a's Scope and implementation notes limit this aggregate to T-115aa and T-115ab, while the parent T-115 owns the later six-part integration. Both child Reports and implementations are already reviewable; applying the stated promotion condition preserves task order without changing behavior, schema, security controls or public contracts.
 - **Changed:** `tasks/M1-core/T-115a-transactional-idempotency.md`; generated `tasks/INDEX.md`; this decision register.
 - **Ratify:** Yes.
+
+### TD-140 — Scope v1.0 to M0–M7; defer M8 and M9 to v1.1
+
+- **Question:** Does v1.0 include the desktop app (M8) and the cloud platform (M9)? The ROADMAP and README already placed them after the v1.0 release, but their 16 task files were `todo`, so the implementer would have picked them up right after M7 by ID order.
+- **Options:** (a) v1.0 = M0–M9, one large release; (b) v1.0 = M0–M7, M8 and M9 deferred to v1.1; (c) v1.0 = M0–M8, cloud deferred.
+- **Decision:** Option (b). The 16 tasks in `tasks/M8-desktop/` and `tasks/M9-cloud/` change from `todo` to `draft`. `ROADMAP.md`, `README.md`, `README.id.md` and `spec/13-roadmap.md` label M8 and M9 as v1.1. `tasks/README.md` states the scope rule.
+- **Why:** The user approved this scope. It keeps the v1.0 queue to the features that are needed for a public release (YAGNI, `spec/16` §2A). M8 needs Tauri and a tunnel, and M9 needs billing and signup, which are not needed for a self-hosted v1.0. `draft` is the existing rule for work that is not yet ready to start (`tasks/README.md`), so no new status is introduced. The M8/M9 files still carry no `## Security` sections; they must be written before promotion (SBD-30).
+- **Changed:** `tasks/M8-desktop/*.md`, `tasks/M9-cloud/*.md` (status only), `ROADMAP.md`, `README.md`, `README.id.md`, `spec/13-roadmap.md`, `tasks/README.md`, `tasks/INDEX.md` (regenerated), this register.
+- **Ratify:** Yes. Changing the release scope is a maintainer decision; this record reflects the maintainer's approval.

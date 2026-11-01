@@ -2,7 +2,7 @@
 id: T-805
 title: Add the local-only HTTPS mode (local CA, mDNS name, guided certificate install)
 milestone: M8
-status: todo
+status: draft
 depends_on: [T-804]
 spec_refs: [DST-22]
 estimated_size: S

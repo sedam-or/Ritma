@@ -2,7 +2,7 @@
 id: T-904
 title: Add plans, limits and daily usage metering with graceful over-limit behaviour
 milestone: M9
-status: todo
+status: draft
 depends_on: [T-903]
 spec_refs: [CLD-12]
 estimated_size: M
