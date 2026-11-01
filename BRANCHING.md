@@ -1,135 +1,79 @@
 # Branching strategy
 
-Ritma uses **trunk-based development with short-lived branches and squash merges** ([ADR-0015](spec/adr/0015-trunk-based-branching.md)). This file is the single source of truth for branch names, lifetimes, protection and the release, hotfix and backport flows. Other documents link here and don't repeat the rules.
+Ritma has **exactly three long-lived branches: `dev`, `staging` and `main`** ([ADR-0020](spec/adr/0020-three-long-lived-branches.md), which supersedes [ADR-0015](spec/adr/0015-trunk-based-branching.md)). This file is the single source of truth for branch names, what each branch is for, promotion, hotfixes and protection. Other documents link here and do not repeat the rules.
 
-## 1. Model in one picture
+## 1. The three branches
 
-```mermaid
-gitGraph
-  commit id: "main"
-  branch task/T-203-calendar-holds
-  commit id: "wip"
-  commit id: "wip 2"
-  checkout main
-  merge task/T-203-calendar-holds id: "feat(scheduling): … [T-203]" type: HIGHLIGHT
-  branch release-please--branches--main
-  commit id: "chore(main): release 0.4.0"
-  checkout main
-  merge release-please--branches--main id: "tag v0.4.0" tag: "v0.4.0"
-  branch release/v0.4
-  checkout main
-  commit id: "fix(billing): … (#123)"
-  checkout release/v0.4
-  cherry-pick id: "fix(billing): … (#123)"
-  commit id: "tag v0.4.1" tag: "v0.4.1"
+```
+dev ──promote (PR, merge commit)──► staging ──promote (PR, merge commit)──► main ──release-please──► tag vX.Y.Z
 ```
 
-- **`main` is the trunk.** It is always releasable: CI green, migrations forward-only, docs current. Nothing lands on `main` without a PR.
-- **Work happens on short-lived branches**, one task or issue per branch, merged within days (target ≤ 3 working days; a branch older than 14 days without activity is closed, §7).
-- **One task = one squashed commit on `main`.** The PR title becomes the commit header (COMMIT_CONVENTION §9). History on `main` is linear.
-- **Releases are tags on `main`** created by release-please (RELEASING.md). Maintenance branches exist only to patch a previous minor (§5).
-
-## 2. Branch names
-
-`<kind>/<ref>-<slug>`, lowercase ASCII, words separated by `-`, at most 60 characters. `<ref>` is the task id or the issue number when there is one.
-
-| Kind | Pattern | Use | Base | Merges into |
+| Branch | Purpose | Who writes it | Gate | Tags |
 |---|---|---|---|---|
-| Task | `task/T-xxx-<slug>` | Work from a task file (WORKFLOW.md Step 0) | `main` | `main` |
-| Feature | `feat/<issue>-<slug>` | A capability with no task file (rare: open a task instead) | `main` | `main` |
-| Fix | `fix/<issue>-<slug>` | A bug fix | `main` | `main` |
-| Docs | `docs/<slug>` or `docs/<issue>-<slug>` | Spec, tasks, brand, README, governance | `main` | `main` |
-| CI | `ci/<slug>` | Workflows, guard scripts | `main` | `main` |
-| Build / deps | `build/<slug>`; Dependabot uses `dependabot/**` | Toolchain, dependency bumps | `main` | `main` |
-| Hotfix | `hotfix/v<X.Y.Z>-<slug>` | A fix that must ship before the next regular release (§6) | `main` | `main` |
-| Backport | `backport/<PR>-to-v<X.Y>` | Cherry-pick of a merged fix onto a maintenance branch (§5) | `release/vX.Y` | `release/vX.Y` |
-| Maintenance | `release/v<X.Y>` | Patch line for a previous minor (§5) | tag `vX.Y.0` | never merged back |
-| Release PR | `release-please--branches--main` | Owned by release-please, never edited by hand | `main` | `main` |
-| Archive | `archive/<name>` | Frozen history (e.g. `archive/v0-capstone`) | — | never |
+| `dev` | Integration. Every finished task lands here. | Implementers (WORKFLOW.md) and maintainers push commits directly. External contributors open PRs against `dev`. | `ci.yml` on push; `ci-ok` must be green. A red `dev` stops new task work until it is fixed. | none |
+| `staging` | Release candidate. Frozen while a candidate is tested. | Only promotion PRs from `dev`. Fixes go to `dev` and are promoted again. | `ci.yml` on the PR; `ci-ok`. | `vX.Y.Z-rc.N` (maintainer, by hand) |
+| `main` | Released code, the line users install. | Only promotion PRs from `staging`, and the release-please release PR. | `ci.yml`; `ci-ok`, which includes `promotion-source` (the head branch must be `staging`). | `vX.Y.Z` (release-please) |
 
-Rules:
-- One branch per task. Rework after review continues on the **same** branch (WORKFLOW.md §5).
-- No personal long-lived branches (`dev`, `develop`, `staging`, `<name>/playground`). Use a draft PR or a fork.
-- Contributors from forks use the same names in their fork.
+## 2. Rules
 
-## 3. Lifetime of a branch
+1. **Exactly three branches on `origin`: `dev`, `staging`, `main`.** No other branch is pushed to `origin`, ever. That includes `task/`, `feat/`, `fix/`, `docs/`, `ci/`, `build/`, `hotfix/`, `release/`, `backport/`, `milestone/`, `run/` and `archive/` names. A task or a fix is a commit on `dev`, not a branch. Local branches are fine for scratch work and must never be pushed.
+2. **Bot branches are the only exception.** Dependabot's `dependabot/**` and the release-please release PR branch live until their PR is merged, and are deleted automatically.
+3. **Forks** are used for external experiments and for security work before an advisory is published (SECURITY.md).
+4. **Never force-push and never delete** `dev`, `staging` or `main`. Rulesets enforce this (§6).
+5. **Every commit is signed off** (`git commit -s`, DCO). PR titles follow COMMIT_CONVENTION §9.
+6. **Keep `dev` green.** Commit a task when its checks pass. If a push breaks `ci-ok`, fix it on `dev` before the next task. Never promote a red `dev`.
 
-1. **Create** from an up-to-date `main`: `git switch main && git pull --ff-only && git switch -c task/T-203-calendar-holds`.
-2. **Commit freely.** Local WIP commits can say anything; they are squashed on merge (COMMIT_CONVENTION §8). Every commit is signed off (`git commit -s`).
-3. **Stay current by rebasing**, not merging: `git fetch origin && git rebase origin/main`, then `git push --force-with-lease`. Never `--force` without `-with-lease`. Never rebase a branch someone else is also pushing to without asking.
-4. **Open the PR early as a draft** if the work spans more than a day, so CI runs and others see it.
-5. **Mark ready** when the task Report is filled and every check is green (WORKFLOW.md Step 12).
-6. **Merge** with "Squash and merge" after approval and a green `ci-ok`. The branch is deleted automatically.
+## 3. Promotion and release
 
-## 4. Stacked PRs
+1. **`dev` → `staging`:** open a PR with the title `release: promote dev to staging (vX.Y.Z-rc.N)`. Merge it with **Create a merge commit**, not squash, so `staging` and `main` stay reconcilable.
+2. **Test the candidate on `staging`** with the release checklist in RELEASING.md. A defect is fixed on `dev` and promoted again. Nothing is committed to `staging` directly.
+3. **`staging` → `main`:** open a PR with the title `release: promote staging to main (vX.Y.Z)`, merged with a merge commit. The `promotion-source` check fails unless its head branch is `staging`.
+4. **Release:** release-please opens the release PR on `main`. Merging it tags `vX.Y.Z` and runs `release.yml` (RELEASING.md).
+5. **Sync back:** after the release, a maintainer merges `main` into `dev` (`git switch dev && git merge --no-ff origin/main && git push origin dev`), so `dev` has the changelog and version bump. Then `staging` is promoted again at the next candidate.
 
-Use a stack only when a second change genuinely needs the first one and the first one is still in review (for example, docs that build on a spec PR).
+## 4. Hotfixes
 
-- Base the second branch on the first, and open its PR **against the first branch**, not `main`. Say "Stacked on #N" at the top of the description.
-- When the bottom PR is squash-merged, GitHub retargets the next PR to `main`. Then rebase it: `git rebase --onto origin/main <old-base-branch> <branch>` and `git push --force-with-lease`.
-- Maximum stack depth: 2. Deeper stacks mean the work wasn't split well; merge or close the bottom first.
+1. Commit the fix on `dev` with its task or issue reference, and make CI green.
+2. Promote `dev` → `staging` → `main` as in §3. One maintainer approval on the promotion PR is enough. No CI check may be skipped. Then merge the release-please PR straight away to tag the patch.
+3. **Security issues:** prepare the fix in a private fork from a GitHub Security Advisory (SECURITY.md). Publish it through the advisory, then promote it as above.
 
-## 5. Maintenance branches and backports
+## 5. Supported versions and maintenance
 
-SECURITY.md promises security fixes for the previous minor for 90 days after a new minor ships. That is the only reason maintenance branches exist.
+- **Only the latest minor of the current major receives fixes.** A fix ships as the next patch release from `main`. Older minors get no fixes; the upgrade notes in `CHANGELOG.md` say how to move.
+- **There are no maintenance branches.** `release/*` and `backport/*` branches do not exist. A fix goes to `dev` first, is promoted through `staging`, and is released from `main`.
 
-- **Before v1.0:** no maintenance branches. Fixes ship in the next release from `main`.
-- **From v1.0:** when `vX.(Y+1).0` is tagged, a maintainer creates `release/vX.Y` from tag `vX.Y.0`'s latest patch (`git switch -c release/vX.Y vX.Y.Z && git push -u origin release/vX.Y`). It lives 90 days, then it is deleted (the tags stay).
-- **Fix on `main` first.** Every fix lands on `main` through a normal PR. Only then is it backported, so nothing is fixed in an old line and forgotten in the trunk.
-- **Backport:** `git switch -c backport/<PR>-to-vX.Y origin/release/vX.Y && git cherry-pick -x <squash-sha>`, then open a PR against `release/vX.Y` titled like the original with the suffix ` (backport #<PR>)`. Add the label `backport`.
-- **Patch release from a maintenance branch:** run the `release-please` workflow manually with `target-branch: release/vX.Y` (RELEASING.md, maintenance releases). It tags `vX.Y.(Z+1)` on that branch and `release.yml` publishes it. A patch from `release/**` must not move the GitHub "latest" release, the `latest` image tag or `latest.json` (T-704 adds this before the first maintenance release).
-- Only `fix`, `perf` with a security reason, and `build(deps)` security bumps are backported. Never features, never migrations that aren't also on `main` in the same order.
+## 6. Protection (a maintainer applies these in GitHub, once)
 
-## 6. Hotfixes
+| Setting | `main` | `staging` | `dev` |
+|---|---|---|---|
+| Pull request required | ✅ 1 approval, code owners | ✅ 1 approval | ❌ implementers push directly; external contributors use PRs |
+| Required status check | `ci-ok` (includes `promotion-source`) | `ci-ok` | `ci-ok`, run on push |
+| Block force push and deletion | ✅ | ✅ | ✅ |
+| Allowed merge methods | merge commit | merge commit | squash (external PRs) |
+| Dismiss stale approvals | ✅ | ✅ | n/a |
+| Require conversation resolution | ✅ | ✅ | n/a |
+| Bypass | nobody; the release-please app for its own PR only | nobody | nobody |
 
-A hotfix is a fix that can't wait for the next regular release (a security issue, data corruption, a broken install).
-
-1. Branch `hotfix/v<next-patch>-<slug>` from `main`. Security fixes follow SECURITY.md first: they are prepared in a **private fork from a GitHub Security Advisory**, not on a public branch, until the advisory is published.
-2. PR to `main` with the `hotfix` label. One maintainer approval is enough; CI must still be green. No CI check may be skipped.
-3. Merge, then merge the release-please PR straight away to tag the patch.
-4. Backport (§5) if a supported maintenance branch exists.
-
-## 7. Protection and repository settings
-
-`main` and `release/**` are protected with a **repository ruleset**. The maintainer applies these settings (GitHub web UI → Settings → Rules, or the `gh api` call below):
-
-| Setting | `main` | `release/**` |
-|---|---|---|
-| Require a pull request before merging | ✅, 1 approval (2 after the council forms, GOVERNANCE.md) | ✅, 1 approval |
-| Dismiss stale approvals on new commits | ✅ | ✅ |
-| Require review from Code Owners | ✅ (CODEOWNERS) | ✅ |
-| Require conversation resolution | ✅ | ✅ |
-| Required status checks | `ci-ok` (the single gate job), DCO | `ci-ok`, DCO |
-| Require branches to be up to date | ✅ | ✅ |
-| Require linear history | ✅ | ✅ |
-| Allowed merge method | Squash only | Squash only |
-| Block force pushes and deletions | ✅ | ✅ (deletion allowed for admins after 90 days) |
-| Bypass | Nobody, release-please app only for its own PR | Nobody |
-
-Repository settings: squash merge only, PR title as the default commit message, **automatically delete head branches**, Dependabot security updates on, private vulnerability reporting on.
+Repository settings: automatically delete head branches, private vulnerability reporting on, Dependabot security updates on.
 
 ```sh
-# Apply the main ruleset (run once by a repo admin; adjust REPO).
-REPO=sedam-or/Equalizer-Stake
-gh repo edit "$REPO" --enable-squash-merge --enable-merge-commit=false \
-  --enable-rebase-merge=false --delete-branch-on-merge
+# Run once by a repository admin. Set REPO to owner/name first.
+: "${REPO:?set REPO=owner/name}"
 gh api -X POST "repos/$REPO/rulesets" --input - <<'JSON'
 {
-  "name": "main",
+  "name": "protect-main",
   "target": "branch",
   "enforcement": "active",
-  "conditions": { "ref_name": { "include": ["~DEFAULT_BRANCH", "refs/heads/release/**"], "exclude": [] } },
+  "conditions": { "ref_name": { "include": ["refs/heads/main"], "exclude": [] } },
   "rules": [
     { "type": "deletion" },
     { "type": "non_fast_forward" },
-    { "type": "required_linear_history" },
     { "type": "pull_request", "parameters": {
         "required_approving_review_count": 1,
         "dismiss_stale_reviews_on_push": true,
         "require_code_owner_review": true,
-        "require_last_push_approval": false,
         "required_review_thread_resolution": true,
-        "allowed_merge_methods": ["squash"] } },
+        "allowed_merge_methods": ["merge"] } },
     { "type": "required_status_checks", "parameters": {
         "strict_required_status_checks_policy": true,
         "required_status_checks": [ { "context": "ci-ok" } ] } }
@@ -138,24 +82,21 @@ gh api -X POST "repos/$REPO/rulesets" --input - <<'JSON'
 JSON
 ```
 
-**Hygiene:**
-- Merged branches are deleted automatically. A maintainer closes PRs inactive for 14 days with a friendly note (stale bot comment at 10 days).
-- Tags `v*` are immutable: a tag ruleset blocks updates and deletions of `refs/tags/v*`.
-- `archive/*` branches are read-only by convention and never receive commits.
+Create the same ruleset for `staging` and `dev` with the settings in the table; `dev` omits the pull request rule. Tags `v*` get a tag ruleset that blocks updates and deletions.
 
-## 8. CI on branches
+## 7. CI on branches
 
-- `ci.yml` runs on every pull request (any base, so PRs into `release/**` get the same checks) and on pushes to `main`. It deliberately has no push trigger for `release/**`: zizmor flags cache use in a workflow that looks like it publishes, and a maintenance branch only changes through PRs. `ci-ok` is the only required check, so adding a job never requires changing the ruleset.
-- `release-please.yml` runs on pushes to `main`, and manually for maintenance branches.
+- `ci.yml` runs on every pull request, whatever its base, and on pushes to `dev`, `staging` and `main`. `ci-ok` is the only required check, so adding a job never changes the rulesets.
+- `promotion-source` runs for pull requests into `main` and fails unless the head branch is `staging`.
+- `release-please.yml` runs on pushes to `main` only.
 - Workflows never run with write permissions on pull requests from forks (`pull_request`, not `pull_request_target`; spec 24 OSS §6).
 
-## 9. Quick reference
+## 8. Quick reference
 
 ```sh
-git switch main && git pull --ff-only
-git switch -c task/T-203-calendar-holds        # or fix/123-…, docs/…
-git commit -s -m "wip"                          # as often as you like
-git fetch origin && git rebase origin/main      # stay current
-git push --force-with-lease -u origin HEAD      # open a draft PR
-# PR title: feat(scheduling): add calendar holds [T-203]   → squash-merged as that commit
+git switch dev && git pull --ff-only
+git commit -s -m "feat(scheduling): add calendar holds [T-203]"
+git push origin dev                                   # CI runs on the push
+gh pr create --base staging --head dev \
+  --title "release: promote dev to staging (v0.4.0-rc.1)"
 ```

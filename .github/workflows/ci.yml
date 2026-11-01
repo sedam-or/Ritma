@@ -1,4 +1,4 @@
-# CI for every PR and push to main (spec/12 §3, spec/24 OSS-20/21).
+# CI for every PR and for pushes to dev, staging and main (BRANCHING.md §7; spec/12 §3, spec/24 OSS-20/21).
 # Jobs activate progressively: each one skips until the code it checks exists,
 # and `ci-ok` is the single required status check for branch protection.
 name: ci
@@ -6,7 +6,7 @@ name: ci
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [dev, staging, main]
   workflow_dispatch:
 
 permissions:
@@ -144,9 +144,7 @@ jobs:
       - name: Tests with coverage (testcontainers uses the runner's Docker)
         run: cargo llvm-cov nextest --workspace --locked --lcov --output-path lcov.info
       - name: Domain coverage gate (TST-01)
-        run: |
-          if [ -x scripts/check-coverage.sh ]; then scripts/check-coverage.sh lcov.info
-          else echo "scripts/check-coverage.sh not present yet (T-006); skipping gate"; fi
+        run: scripts/check-coverage.sh lcov.info
 
   web:
     name: web (lint, types, tests, i18n, size, build)
@@ -285,10 +283,24 @@ jobs:
           path: web/playwright-report
           retention-days: 7
 
+  promotion-source:
+    name: promotion-source (main accepts only staging, BRANCHING.md §3)
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: The head branch must be staging
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ "$HEAD_REF" != "staging" ]; then
+            echo "::error::PRs into main must come from staging (BRANCHING.md §3)"; exit 1
+          fi
+
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [detect, docs, meta, pr-title, secrets, rust, web, contract, guards, e2e]
+    needs: [detect, docs, meta, pr-title, secrets, rust, web, contract, guards, e2e, promotion-source]
     runs-on: ubuntu-latest
     steps:
       - name: Fail if any job that ran failed or was cancelled

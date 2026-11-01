@@ -5,7 +5,7 @@
 | Version | Supported |
 |---|---|
 | Latest minor of the current major | ✅ |
-| Previous minor | ✅ security fixes for 90 days after a new minor |
+| Older releases | ❌ upgrade to the latest minor (BRANCHING.md §5) |
 | `legacy/` (v0 capstone) | ❌ archived, not deployed |
 
 ## Reporting a vulnerability
@@ -26,7 +26,7 @@ Our security-by-design standard (`spec/18-security-by-design.md`) defines data c
 
 ## Scope
 
-In scope: the `ritma` server, the web app, the desktop app, the official deploy templates and install script, and the managed cloud.
+In scope: the `ritma` server, the web app, and the official deploy templates and install script. The desktop app and the managed cloud are in scope from v1.1 (ROADMAP.md).
 
 Out of scope: denial of service by volume, social engineering, issues in third-party providers (SMTP or WhatsApp vendors), and self-hosted instances misconfigured against the docs.
 

@@ -84,7 +84,7 @@ Third-party images (`postgres`, `caddy`) are pinned by digest in production comp
 2. Generate the SBOM and SLSA provenance (`sbom: true`, `provenance: mode=max`).
 3. Scan with Trivy and fail on **CRITICAL** fixable vulnerabilities.
 4. Sign the image digest keylessly with cosign and push an attestation (`actions/attest-build-provenance`).
-5. Publish tags `X.Y.Z` and `X.Y`, and `latest` only for the highest release (BRANCHING.md §5, T-704).
+5. Publish tags `X.Y.Z` and `X.Y`, and `latest` only for the highest release (BRANCHING.md §3, T-704).
 
 Users verify with:
 

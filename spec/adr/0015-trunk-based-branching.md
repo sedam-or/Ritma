@@ -1,6 +1,6 @@
 # ADR-0015: Trunk-based development with short-lived branches and squash merges
 
-- Status: Proposed (2026-10-25), accepted on merge of the PR that adds `BRANCHING.md`
+- Status: Superseded by ADR-0020 (2026-11-01). Kept for history.
 
 ## Context
 Ritma is built one task at a time (WORKFLOW.md, WIP = 1), mostly by agents and occasional contributors. Releases are cut by release-please from Conventional Commits on `main` (RELEASING.md), and SECURITY.md promises security fixes for the previous minor for 90 days. Branch naming was described in three files, with no rule for releases, hotfixes, backports or stacked PRs.
