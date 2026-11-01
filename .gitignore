@@ -21,3 +21,8 @@
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Local WIP preserved by agents. Ignored, not deleted; ask the maintainer before removing.
+/.ritma-t110b-e2e-preserve/
+/crates/eq-audit/src/*.pending
+/crates/eq-audit/tests/*.hold

@@ -22,4 +22,4 @@ Options considered:
 - Implementers push directly to `dev`, so CI must run on push, and a red `dev` stops new work.
 - Merge commits on promotion keep history traceable, at the cost of a less linear `main`.
 - Without maintenance branches, users on an older minor must upgrade. The upgrade notes in `CHANGELOG.md` are required in each release.
-- BRANCHING.md, RELEASING.md, SECURITY.md, the CI workflows and the Dependabot configuration are updated in the same change (see TD-141).
+- BRANCHING.md, RELEASING.md, SECURITY.md, the CI workflows and the Dependabot configuration are updated in the same change (see TD-206).

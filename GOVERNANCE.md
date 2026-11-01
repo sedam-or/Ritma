@@ -32,3 +32,7 @@ RFCs stay open for comments for at least **7 days**, are labelled `rfc`, and are
 ## Trademark
 
 The code is AGPL-3.0, while the name and logo are trademarks of the project (see `TRADEMARK.md`). Forks are welcome and must use a different name.
+
+## Current exceptions
+
+- **Two approvals.** `BRANCHING.md` §6 and SBD-80 call for a second reviewer on security-review PRs. Until a second maintainer joins, the founding maintainer approves alone. This exception ends when the council forms (above). Recorded in TD-208.

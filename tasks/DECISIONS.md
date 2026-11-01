@@ -1558,7 +1558,9 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Changed:** `tasks/M1-core/T-115a-transactional-idempotency.md`; generated `tasks/INDEX.md`; this decision register.
 - **Ratify:** Yes.
 
-### TD-140 — Scope v1.0 to M0–M7; defer M8 and M9 to v1.1
+### TD-205 — Scope v1.0 to M0–M7; defer M8 and M9 to v1.1
+
+- **Renumbered:** first written as TD-140 (commit message of the same change); TD-140 was already taken on `dev` by the implementation ledger, so the register number is TD-205.
 
 - **Question:** Does v1.0 include the desktop app (M8) and the cloud platform (M9)? The ROADMAP and README already placed them after the v1.0 release, but their 16 task files were `todo`, so the implementer would have picked them up right after M7 by ID order.
 - **Options:** (a) v1.0 = M0–M9, one large release; (b) v1.0 = M0–M7, M8 and M9 deferred to v1.1; (c) v1.0 = M0–M8, cloud deferred.
@@ -1567,7 +1569,9 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Changed:** `tasks/M8-desktop/*.md`, `tasks/M9-cloud/*.md` (status only), `ROADMAP.md`, `README.md`, `README.id.md`, `spec/13-roadmap.md`, `tasks/README.md`, `tasks/INDEX.md` (regenerated), this register.
 - **Ratify:** Yes. Changing the release scope is a maintainer decision; this record reflects the maintainer's approval.
 
-### TD-141 — Three long-lived branches and no maintenance lines (governance wave A)
+### TD-206 — Three long-lived branches and no maintenance lines (governance wave A)
+
+- **Renumbered:** first written as TD-141 (commit message of the same change); TD-141 was already taken on `dev` by the implementation ledger, so the register number is TD-206.
 
 - **Question:** BRANCHING.md, ADR-0015, RELEASING.md, SECURITY.md and the CI triggers still described one trunk with task branches, `release/*` maintenance lines, hotfix branches and a 90-day previous-minor window, which contradicts the maintainer's decision to keep exactly `main`, `staging` and `dev`.
 - **Options:** (a) keep the old model and document `dev`/`staging` as exceptions; (b) replace it with the three-branch model and remove maintenance lines.
@@ -1577,7 +1581,9 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Not applied here:** The rulesets for `dev`, `staging` and `main` are GitHub settings. They are written out in BRANCHING.md §6 for a maintainer to apply; this change does not apply them.
 - **Ratify:** Yes.
 
-### TD-142 — Add the missing public-project files (governance wave B)
+### TD-207 — Add the missing public-project files (governance wave B)
+
+- **Renumbered:** first written as TD-142 (commit message of the same change); TD-142 was already taken on `dev` by the implementation ledger, so the register number is TD-207.
 
 - **Question:** The repository has no CHANGELOG, SUPPORT, NOTICE, REUSE licence map, third-party licence list or user-documentation index, which an open-source project distributed under AGPL needs before v1.0.
 - **Options:** (a) create each file now with its content and owner; (b) create them only when M7 is built.
@@ -1596,4 +1602,26 @@ The delegated resolver directive calls itself TD-001; this registry already assi
   - The code-of-conduct contact in `MAINTAINERS.md` is still a placeholder.
   - REUSE compliance is not verified: the `reuse` tool is not installed. The check belongs in CI with T-704.
 - **Changed:** `CHANGELOG.md`, `SUPPORT.md`, `NOTICE`, `REUSE.toml`, `LICENSES/AGPL-3.0-only.txt`, `THIRD_PARTY_LICENSES.md`, `docs/README.md`, `CONTRIBUTING.md`, this register.
+- **Ratify:** Yes.
+
+### TD-208 — Production-readiness requirements and the two-approval exception (governance wave C)
+
+- **Renumbered:** first written as TD-143 (commit message of the same change); TD-143 was already taken on `dev` by the implementation ledger, so the register number is TD-208.
+
+- **Question:** Which enterprise open-source requirements are missing, and how are they tracked? In particular: incident response, restore drills, upgrade tests, vulnerability response times, key management, external review, legal templates, accessibility statement, licence output at release, the decision index, and the two-approval rule of SBD-80 when there is one maintainer.
+- **Options:** (a) list the gaps only; (b) write a requirements spec with IDs, owner tasks and open decisions, add draft tasks for the uncovered gaps, and fix the mechanical P3 items now.
+- **Decision:** Option (b).
+  - `spec/30-production-readiness.md` lists PRD-01 to PRD-12, each with an owner task and a status.
+  - Five draft tasks in M7 cover the uncovered gaps: T-710a (upgrade tests on PostgreSQL 16), T-710b (SLOs, incident response, restore-drill log), T-710c (response times, key-management runbook, external-review plan), T-710d (privacy and DPA templates, accessibility statement), T-710e (generated third-party licences and REUSE check). They are named by the rule in tasks/README.md (lower neighbour plus letter), and T-711 now depends on them.
+  - `scripts/decisions-index.py` generates `tasks/DECISIONS-INDEX.md`, and CI runs its `--check`.
+  - GOVERNANCE.md records the current exception: one maintainer approves security-review PRs until a second maintainer joins.
+  - `tasks/HYGIENE.md` is marked as a superseded snapshot. `.gitignore` covers the agents' preserved WIP paths, which are ignored and not deleted.
+- **Why:** An enterprise reviewer asks for these items before adoption. Writing them as IDs with owners makes each one checkable, and the drafts stay out of the implementer's queue until their open decisions are recorded. The two-approval exception is stated openly rather than left in conflict with SBD-80.
+- **Open decisions (not decided here):**
+  - PRD-05: the response times (proposed 5 working days triage and 14 days for critical fixes).
+  - PRD-07: whether an external security review is required before v1.0, and its budget.
+  - PRD-11: whether opt-in telemetry (T-703) ships in v1.0 at all (YAGNI).
+  - PRD-12: the conduct contact and the DCO or CLA choice (also open in TD-207).
+  - The new draft tasks (T-710a to T-710e) are promoted to `todo` only after the maintainer answers the decisions they depend on.
+- **Changed:** `spec/30-production-readiness.md` (new), `tasks/M7-release-distribution/T-710a…e` (new drafts), `tasks/M7-release-distribution/T-711-v1-readiness.md` (depends_on), `scripts/decisions-index.py` (new), `tasks/DECISIONS-INDEX.md` (generated), `.github/workflows/ci.yml`, `GOVERNANCE.md`, `tasks/HYGIENE.md`, `.gitignore`, this register.
 - **Ratify:** Yes.

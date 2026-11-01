@@ -1,3 +1,5 @@
+> **Superseded snapshot.** This is the read-only baseline of 2026-10-28 at `milestone/m3-setup-web`. Its findings are historical (for example, T-106 and T-107 were blocked then). Use the current task files and `scripts/tasks-lint.py`.
+
 # Task hygiene audit
 
 Read-only baseline: `milestone/m3-setup-web` at `66177dd` (2026-10-28). The scan read all `tasks/**/T-*.md` files and cited candidate lines before changes. `scripts/tasks-index.sh --check` and `python3 -I scripts/erd.py --check` passed. Inventory: 2 `blocked`, 72 `draft`, 14 `review`, 40 `todo`; total 128.
