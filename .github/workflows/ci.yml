@@ -150,7 +150,7 @@ jobs:
       RITMA_DATABASE_OWNER_URL: postgres://eq:eq@localhost:5432/ritma_test_T-113b
       RITMA_SECRET_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
       RITMA_PUBLIC_URL: http://localhost:8080
-      RITMA_DATA_DIR: ${{ runner.temp }}/ritma-data
+      RITMA_DATA_DIR: /tmp/ritma-t113b-data
       RITMA_BACKUP_SCHEDULE: off
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
