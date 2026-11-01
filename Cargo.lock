@@ -1352,6 +1352,7 @@ dependencies = [
 name = "eq-attendance"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "eq-audit",
  "eq-core",
  "eq-identity",
@@ -1404,6 +1405,7 @@ dependencies = [
 name = "eq-billing"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "eq-audit",
  "eq-core",
  "eq-identity",
@@ -1467,6 +1469,7 @@ dependencies = [
 name = "eq-enrollment"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "eq-audit",
  "eq-core",
  "eq-identity",
@@ -1479,6 +1482,7 @@ dependencies = [
 name = "eq-feedback"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "eq-audit",
  "eq-core",
  "eq-identity",
@@ -1528,6 +1532,7 @@ dependencies = [
 name = "eq-notify"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "eq-audit",
  "eq-core",
  "eq-identity",
@@ -1540,6 +1545,7 @@ dependencies = [
 name = "eq-rental"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "eq-audit",
  "eq-core",
  "eq-identity",
@@ -1552,6 +1558,7 @@ dependencies = [
 name = "eq-reports"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "eq-audit",
  "eq-core",
  "eq-identity",
@@ -1564,6 +1571,7 @@ dependencies = [
 name = "eq-scheduling"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "eq-audit",
  "eq-core",
  "eq-identity",
