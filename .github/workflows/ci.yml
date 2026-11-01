@@ -128,6 +128,30 @@ jobs:
     needs: detect
     if: needs.detect.outputs.rust == 'true'
     runs-on: ubuntu-latest
+    # The T-113b API and audit tests run against a prepared database named
+    # ritma_test_T-113b (see their fixtures). CI provides it here; no developer
+    # container is needed. Values are test-only and not secrets.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: eq
+          POSTGRES_PASSWORD: eq
+          POSTGRES_DB: ritma_test_T-113b
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U eq -d ritma_test_T-113b"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://eq_app:eq_app@localhost:5432/ritma_test_T-113b
+      RITMA_DATABASE_OWNER_URL: postgres://eq:eq@localhost:5432/ritma_test_T-113b
+      RITMA_SECRET_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      RITMA_PUBLIC_URL: http://localhost:8080
+      RITMA_DATA_DIR: ${{ runner.temp }}/ritma-data
+      RITMA_BACKUP_SCHEDULE: off
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -143,8 +167,19 @@ jobs:
       - run: cargo deny check
       - run: cargo audit
       - run: cargo machete
+      - name: Create the least-privilege application role (T-113b test database)
+        env:
+          POSTGRES_CONTAINER_ID: ${{ job.services.postgres.id }}
+        run: |
+          mkdir -p "$RITMA_DATA_DIR"
+          docker exec "$POSTGRES_CONTAINER_ID" psql -U eq -d ritma_test_T-113b \
+            -v ON_ERROR_STOP=1 \
+            -c "CREATE ROLE eq_app LOGIN PASSWORD 'eq_app' NOSUPERUSER NOBYPASSRLS"
+      - name: Migrate the T-113b test database
+        run: cargo run --locked -q -p eq-server -- migrate
       - name: Tests with coverage (testcontainers uses the runner's Docker)
-        run: cargo llvm-cov nextest --workspace --locked --lcov --output-path lcov.info
+        # --no-fail-fast reports every failing test in one run.
+        run: cargo llvm-cov nextest --workspace --locked --no-fail-fast --lcov --output-path lcov.info
       - name: Domain coverage gate (TST-01)
         run: scripts/check-coverage.sh lcov.info
 
