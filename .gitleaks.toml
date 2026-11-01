@@ -31,3 +31,7 @@ paths = [
 ]
 regexTarget = "line"
 regexes = ['''test-secret-[A-Za-z0-9_-]+''']
+
+[[allowlists]]
+description = "Reviewed false positive: commit c83e55d (Makefile e2e readiness probe) matched curl-auth-user. The URL is http://127.0.0.1:8080 and contains no credentials. History is not rewritten."
+commits = ["c83e55d2e53f6bbfc9ba42ef00e758ea1fc27572"]

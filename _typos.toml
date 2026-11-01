@@ -5,6 +5,7 @@ extend-exclude = [
   "*.id.md",              # Indonesian translations
   "web/src/locales/id/",  # Indonesian UI catalog
   "presets/*.yaml",       # contain Indonesian catalog names
+  "crates/eq-identity/data/common-passwords.txt", # a wordlist of weak passwords (spec/10), not prose
 ]
 
 [default]
@@ -12,6 +13,7 @@ extend-ignore-re = [
   "\\*\\*[A-Z]\\*\\*[a-z]+",   # STRIDE-style bold initials: **I**nformation
   "[A-Z]{3,}s\\b",             # plural acronyms such as CHECKs
   "\\b[0-9a-f]{7,40}\\b",    # commit IDs in task reports are identifiers, not prose
+  "ritma_test_[0-9a-f]+",    # generated test schema names (random hex suffix), not prose
 ]
 
 [default.extend-words]
