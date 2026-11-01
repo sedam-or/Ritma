@@ -1548,3 +1548,12 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** The table DDL and CAN-70 specify the exact persisted field and what must be compared for retries. API-08's `response_body_hash` wording conflicts with both and has no mapped column.
 - **Changed:** T-115aa implementation and task Report/Questions; no migration or schema change.
 - **Ratify:** Yes.
+
+### TD-204 — Gate the idempotency aggregate on its child tasks
+
+- **Question:** T-115a's implementation notes require T-115aa and T-115ab to be review before promotion, but `scripts/tasks-index.sh` rejects those longer IDs as forward dependencies.
+- **Options:** (a) keep the task-index ordering guard and honor the review-before-promotion condition in the task's implementation note; (b) weaken the guard or rename existing task IDs to encode the child dependency.
+- **Decision:** Use option (a). Leave `depends_on` unchanged and promote T-115a only after both child tasks are review, as they are now.
+- **Why:** The task-index guard explicitly flags a dependency whose ID sorts after its dependent as cycle risk, and it must not be weakened. T-115a's Scope and implementation notes limit this aggregate to T-115aa and T-115ab, while the parent T-115 owns the later six-part integration. Both child Reports and implementations are already reviewable; applying the stated promotion condition preserves task order without changing behavior, schema, security controls or public contracts.
+- **Changed:** `tasks/M1-core/T-115a-transactional-idempotency.md`; generated `tasks/INDEX.md`; this decision register.
+- **Ratify:** Yes.
