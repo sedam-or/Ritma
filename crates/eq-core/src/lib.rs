@@ -17,6 +17,7 @@ pub mod errors;
 pub mod export;
 pub mod fields;
 pub mod http;
+pub(crate) mod idempotency;
 pub mod ids;
 pub mod jobs;
 pub mod limits;

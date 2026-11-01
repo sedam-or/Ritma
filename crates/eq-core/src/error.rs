@@ -72,6 +72,11 @@ pub mod codes {
         status: 422,
         title: "Invalid request",
     };
+    pub static IDEMPOTENCY_MISMATCH: ErrorCodeDef = ErrorCodeDef {
+        code: "idempotency_mismatch",
+        status: 422,
+        title: "Idempotency key reused",
+    };
     pub static POLICY_VIOLATION: ErrorCodeDef = ErrorCodeDef {
         code: "policy_violation",
         status: 422,
@@ -132,6 +137,7 @@ pub mod codes {
         &MODULE_DEPENDENCY,
         &MODULE_REQUIRED_BY,
         &VALIDATION,
+        &IDEMPOTENCY_MISMATCH,
         &POLICY_VIOLATION,
         &PRECONDITION_REQUIRED,
         &VERSION_CONFLICT,

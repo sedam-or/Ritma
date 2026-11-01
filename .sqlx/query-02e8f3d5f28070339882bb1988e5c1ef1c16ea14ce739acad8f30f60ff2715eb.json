@@ -1,0 +1,65 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT route, request_hash, status, body FROM public.idempotency_keys WHERE tenant_id = $1 AND key = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "route",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "idempotency_keys",
+            "name": "route"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "request_hash",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "idempotency_keys",
+            "name": "request_hash"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "status",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "idempotency_keys",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "body",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "idempotency_keys",
+            "name": "body"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "02e8f3d5f28070339882bb1988e5c1ef1c16ea14ce739acad8f30f60ff2715eb"
+}

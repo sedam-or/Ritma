@@ -2665,6 +2665,11 @@
       "title": "Forbidden"
     },
     {
+      "code": "idempotency_mismatch",
+      "status": 422,
+      "title": "Idempotency key reused"
+    },
+    {
       "code": "internal",
       "status": 500,
       "title": "Internal error"

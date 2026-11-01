@@ -122,8 +122,14 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-191 | T-113b | `tasks/M1-core/T-113b-module-metadata,-rbac-registry-and-audit-read-ap.md` | The current runtime has no preset loader, while T-113b must test first-time module policy initialization → recognize only spec 05's `blank` v1 preset as an empty policy patch and keep unknown preset ids fail-closed. |
 | TD-192 | T-113b | `tasks/M1-core/T-113b-module-metadata,-rbac-registry-and-audit-read-ap.md` | The task DoD requests `make api`, but the target is intentionally a T-114 placeholder and T-114 depends on T-113b → keep API generation in T-114, run and report the placeholder, and don't pull T-114 scope into this task. |
 | TD-193 | T-113b | `tasks/M1-core/T-113b-module-metadata,-rbac-registry-and-audit-read-ap.md` | The implementation exceeds CQ-101's approximate 400 changed-line review guide because its assigned routes, registry grants, fixture and tests are required by the task → preserve all assigned ACs and tests, and flag the scope size for maintainer review rather than editing sibling task contracts. |
+| TD-198 | T-115 | tasks/M1-core/T-115-http-hardening.md | One M-sized task combines six cross-cutting HTTP/security concerns and omits implementation paths → split its unchanged contract into six ordered parts under CQ-101; keep downstream tasks on the aggregate until all parts are review. |
+| TD-199 | T-115a | tasks/M1-core/T-115a-transactional-idempotency.md | The extractor has no handler transaction for replay lookup → parse the request first, then require check(tx) before effects and store the result in that same transaction; treat expired rows as absent after 24 hours. |
+| TD-200 | T-115a | tasks/M1-core/T-115a-transactional-idempotency.md | API-08/STM-16 specify HTTP 422 for `idempotency_mismatch`, while a general status grouping implies 409 → use the feature-specific 422 contract. |
+| TD-201 | T-115a | tasks/M1-core/T-115a-transactional-idempotency.md | The task draft classified idempotency table tenant ids as S2, while ERD-03 classifies every persisted column as S1 → follow ERD-03 and retain RLS. |
+| TD-202 | T-115a | tasks/M1-core/T-115a-transactional-idempotency.md | The idempotency Core port and HTTP acceptance suite exceed CQ-101's review-size guide together → split them into ordered T-115aa/T-115ab children and preserve T-115a as aggregate. |
+| TD-203 | T-115aa | tasks/M1-core/T-115aa-core-idempotency.md | API-08 says `response_body_hash`, while spec 06 DDL, ERD-03/06 and CAN-70 define `request_hash` over method, route and canonical request body → retain the spec-defined `request_hash` without changing schema. |
 
-**Total mapped self-resolutions:** 108.
+**Total mapped self-resolutions:** 122.
 
 ## Detailed entries added in run 6
 
@@ -1487,3 +1493,58 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** This task is the only task authorized to provide the OpenAPI contract, and sibling task files are outside its scope. The review-size guide does not authorize weakening the contract.
 - **Changed:** T-114 Questions and Report; `tasks/DECISIONS.md`; generated `tasks/INDEX.md`.
 - **Ratify:** Yes; the maintainer should decide whether a follow-up split or refactor is needed before merge.
+
+### TD-198 — Split the cross-cutting T-115 contract under CQ-101
+
+- **Question:** How should T-115's idempotency, cleanup job, If-Match, rate limits, response headers/cache policy and public-URL warning be delivered without one oversized review?
+- **Options:** (a) keep all six concerns in one task; (b) split the existing behavior into ordered implementation parts and retain the original task as an aggregate.
+- **Decision:** Use option (b): T-115a through T-115f, with each part owning its exact behavior and tests; T-115 remains the downstream dependency until all parts are review.
+- **Why:** CQ-101 requires larger work to be split first. The split preserves the stated behavior, schema and error codes, and adds no permission, event, policy value or dependency.
+- **Changed:** T-115 parent and child task definitions; generated tasks/INDEX.md.
+- **Ratify:** Yes.
+
+### TD-199 — Keep the idempotency lookup in the business transaction
+
+- **Question:** How can the idempotency extractor look up/replay a key and hold the advisory lock in the same transaction as the caller business change when request-body extraction occurs before the handler starts its transaction?
+- **Options:** (a) open a separate lookup transaction in the extractor; (b) parse the request into a value plus guard, then check the key using the handler transaction before any side effect.
+- **Decision:** Use option (b). The caller invokes guard.check(tx) before effects, then stores the successful response through the same Tx before commit; a stored response is replayed and an expired row is treated as absent.
+- **Why:** STM-16 requires the advisory lock and stored response to share the business transaction; API-08 sets the 24-hour retention. A separate transaction would break rollback and concurrent replay guarantees.
+- **Changed:** T-115a interface and implementation plan; tasks/DECISIONS.md.
+- **Ratify:** Yes.
+
+### TD-200 — Use the idempotency-specific mismatch status
+
+- **Question:** API-08 and STM-16 define `idempotency_mismatch` as HTTP 422, while the broad ERR-21/API-07 status example lists the same code among 409 conflicts.
+- **Options:** (a) use 409 from the general conflict table; (b) use the specific 422 behavior stated by API-08 and STM-16 and recorded in T-115a.
+- **Decision:** Use 422 for `idempotency_mismatch`.
+- **Why:** API-08 and STM-16 define the exact idempotency response; the general code grouping conflicts with those feature-specific rules. Keep the specific behavior and request architect ratification.
+- **Changed:** T-115a Report/Questions and `crates/eq-core/src/error.rs`.
+- **Ratify:** Yes.
+
+### TD-201 — Keep idempotency table data class at S1
+
+- **Question:** T-115a's initial Security section classified tenant identifiers in `idempotency_keys` as S2, while the ERD dictionary classifies every column in that table as S1.
+- **Options:** (a) keep S2 for the tenant identifier; (b) align the task's table data-class statement with ERD-03 and retain tenant isolation through the existing RLS boundary.
+- **Decision:** Use the ERD's S1 classification for all persisted idempotency table columns.
+- **Why:** ERD-03 is the source of the column data class; tenant isolation remains enforced by the existing Core transaction and RLS contract.
+- **Changed:** T-115a Security section.
+- **Ratify:** Yes.
+
+
+### TD-202 — Split the idempotency implementation and acceptance suite
+
+- **Question:** T-115a's Core port and HTTP acceptance suite together exceed CQ-101's approximate 400-line review guide.
+- **Options:** (a) keep implementation and HTTP harness in one task; (b) split the Core port/unit tests and dependent HTTP acceptance tests, preserving T-115a as the aggregate.
+- **Decision:** Use option (b): T-115aa implements the Core port; T-115ab verifies HTTP behavior; T-115a remains the dependency for T-115b.
+- **Why:** CQ-101 requires larger work to be split first; the child contracts preserve existing acceptance criteria and task boundaries.
+- **Changed:** T-115a, new T-115aa/T-115ab task files, generated tasks/INDEX.md.
+- **Ratify:** Yes.
+
+### TD-203 — Use the schema-defined idempotency request hash
+
+- **Question:** API-08 describes a stored `response_body_hash`, while spec 06 §4.11 defines the table's `request_hash`, ERD-03/06 repeats that column and ownership, and CAN-70 defines its input as method, route template and canonical request body.
+- **Options:** (a) add or substitute a response-body hash contrary to the mapped DDL and canonical request comparison; (b) use the existing `request_hash` as defined by the schema and canonical-form contract.
+- **Decision:** Use `request_hash` for the SHA-256 of method, route template and JCS-canonical request body; do not alter the table.
+- **Why:** The table DDL and CAN-70 specify the exact persisted field and what must be compared for retries. API-08's `response_body_hash` wording conflicts with both and has no mapped column.
+- **Changed:** T-115aa implementation and task Report/Questions; no migration or schema change.
+- **Ratify:** Yes.
