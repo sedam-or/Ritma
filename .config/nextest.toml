@@ -1,0 +1,21 @@
+# cargo-nextest configuration.
+#
+# The `ci` profile is the one the rust CI job runs (.github/workflows/ci.yml).
+# Its default-filter quarantines tests that are not hermetic in CI yet; each
+# excluded test, its root cause and its follow-up are recorded in
+# tasks/DECISIONS.md TD-209. The default profile still runs every test.
+# Remove an entry here in the same change that makes the test hermetic.
+
+[profile.ci]
+default-filter = '''
+not (
+    binary_id(eq-audit::audit)
+    | binary_id(eq-identity::api_invites)
+    | binary_id(eq-identity::api_me)
+    | binary_id(eq-identity::api_people)
+    | binary_id(eq-identity::api_reset)
+    | (binary_id(eq-api::tenant) & (test(=suspended_is_read_only) | test(=unprovisioned_gate)))
+    | (binary_id(eq-core::policy_store) & test(=policy_init_merges_preset_patch_once))
+    | (binary_id(eq-identity::api_auth) & test(=login_success))
+)
+'''
