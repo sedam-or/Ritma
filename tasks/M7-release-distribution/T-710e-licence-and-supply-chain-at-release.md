@@ -2,7 +2,7 @@
 id: T-710e
 title: Generate third-party licences and run the REUSE check at release
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-704]
 spec_refs: [PRD-10, OSS-20]
 estimated_size: S

@@ -2,7 +2,7 @@
 id: T-710c
 title: Publish the vulnerability-response SLA, key-management runbook and external-review plan
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-705, T-704]
 spec_refs: [PRD-05, PRD-06, PRD-07]
 estimated_size: S
