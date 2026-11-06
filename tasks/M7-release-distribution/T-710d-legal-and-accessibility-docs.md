@@ -2,7 +2,7 @@
 id: T-710d
 title: Add privacy notice and DPA templates and an accessibility statement
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-710]
 spec_refs: [PRD-08, PRD-09]
 estimated_size: S

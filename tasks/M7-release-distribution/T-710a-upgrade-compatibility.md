@@ -2,7 +2,7 @@
 id: T-710a
 title: Test upgrades from the previous release on PostgreSQL 16
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-704]
 spec_refs: [PRD-04, OPS-04]
 estimated_size: M

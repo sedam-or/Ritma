@@ -2,7 +2,7 @@
 id: T-710b
 title: Publish SLOs, incident response and the restore-drill log
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-709, T-701]
 spec_refs: [PRD-01, PRD-02, PRD-03]
 estimated_size: S
