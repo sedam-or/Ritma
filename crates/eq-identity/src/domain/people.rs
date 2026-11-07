@@ -80,4 +80,32 @@ mod tests {
             Err(InvalidGuardianLink)
         );
     }
+
+    #[test]
+    fn non_owner_role_removal_is_always_allowed() {
+        let person = PersonId(Uuid::from_u128(1));
+        assert_eq!(validate_role_removal(Role::Instructor, &[], person), Ok(()));
+    }
+
+    #[test]
+    fn inactive_owner_cannot_be_removed() {
+        let owners = [PersonId(Uuid::from_u128(1)), PersonId(Uuid::from_u128(2))];
+        assert_eq!(
+            validate_role_removal(Role::Owner, &owners, PersonId(Uuid::from_u128(3))),
+            Err(RoleRemovalError::OwnerNotActive)
+        );
+    }
+
+    #[test]
+    fn owner_removal_is_allowed_when_another_owner_remains() {
+        let owners = [PersonId(Uuid::from_u128(1)), PersonId(Uuid::from_u128(2))];
+        assert_eq!(validate_role_removal(Role::Owner, &owners, owners[0]), Ok(()));
+    }
+
+    #[test]
+    fn guardian_link_accepts_distinct_active_people() {
+        let guardian = PersonId(Uuid::from_u128(1));
+        let student = PersonId(Uuid::from_u128(2));
+        assert_eq!(validate_guardian_link(guardian, student, true, true), Ok(()));
+    }
 }

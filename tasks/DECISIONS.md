@@ -1625,3 +1625,39 @@ The delegated resolver directive calls itself TD-001; this registry already assi
   - The new draft tasks (T-710a to T-710e) are promoted to `todo` only after the maintainer answers the decisions they depend on.
 - **Changed:** `spec/30-production-readiness.md` (new), `tasks/M7-release-distribution/T-710a…e` (new drafts), `tasks/M7-release-distribution/T-711-v1-readiness.md` (depends_on), `scripts/decisions-index.py` (new), `tasks/DECISIONS-INDEX.md` (generated), `.github/workflows/ci.yml`, `GOVERNANCE.md`, `tasks/HYGIENE.md`, `.gitignore`, this register.
 - **Ratify:** Yes.
+
+### TD-209 — Quarantine the non-hermetic Rust tests in the CI nextest profile
+
+- **Question:** The `rust` CI job on `dev` fails with 45 of 348 tests (run 41316986216, commit 7848b43). Which failures are product bugs, which are harness problems, and how does CI go green without deleting or weakening a test?
+- **Options:** (a) delete or relax the failing assertions; (b) give CI every per-task database the fixtures expect; (c) build the web bundle for the SPA tests, and quarantine the remaining non-hermetic tests in a named nextest profile, each listed here with its root cause and follow-up.
+- **Decision:** Option (c), as approved by the maintainer (TD-208 follow-up, "option 1 hermetic split").
+  - The `rust` job builds `web/dist` (`pnpm -C web install --frozen-lockfile && pnpm -C web build`) before the tests. This fixes `eq-api::spa` `asset_immutable`, `index_no_cache` and `spa_fallback`, which read the real bundle; without it `build.rs` only writes a placeholder `index.html`.
+  - The `rust` job runs `cargo llvm-cov nextest --profile ci`. `.config/nextest.toml` defines the `ci` profile; its `default-filter` excludes exactly the tests below. The default profile still runs every test, and no test, lint, `cargo deny`, audit, guard or coverage check is changed.
+- **Quarantined tests:**
+  - **Fixed or per-task database (harness).** Each fixture refuses to run unless the database it was written for exists, so it fails in under 0.1 s in CI:
+    - `eq-audit::audit`, all 12 tests (`anonymize_keeps_chain_valid`, `app_role_cannot_mutate`, `audit_failure_rolls_back`, `audit_functions_reject_cross_tenant_arguments`, `audit_retention_job_uses_policy_store`, `audit_sink_records_changes_in_the_caller_transaction`, `audit_sink_rejects_mismatched_tenant_context`, `audit_verify_job_raises_attention_on_mismatch`, `concurrent_sealers`, `concurrent_writer_and_sealer_preserve_sequence_order`, `purge_with_checkpoint`, `tamper_detected`): they need `RITMA_TEST_DATABASE_URL`. Owner: T-109 (T-109f).
+    - `eq-identity::api_invites`, all 7 tests, and `eq-identity::api_me`, all 5 tests: they assert that `DATABASE_URL` names `ritma_test_T-110d`. Owner: T-110d.
+    - `eq-identity::api_reset`, all 3 tests: they assert `ritma_test_T-110e`. Owner: T-110e.
+    - `eq-identity::api_people`, all 11 tests: they assert `ritma_test_T-112b`. Owner: T-112b.
+  - **Stale expectations after later tasks (test, not product).**
+    - `eq-api::tenant` `suspended_is_read_only` (got 401, expects 404) and `unprovisioned_gate` (got 200 for `GET /api/v1/meta/app`, expects 404). T-104 wrote them when no route existed behind the tenant gate, so 404 meant "the gate let the request through". T-112a then added the authenticated `/api/v1/people` route (401 without a token is deny-by-default), and T-113b added the public `/api/v1/meta/app` route that `setup_route` lets through before setup (API spec 07: it is public). The gate behaves as specified. Owner: T-104.
+    - `eq-core::policy_store` `policy_init_merges_preset_patch_once` ("validation failed"). It registers the real `CoreModule` but applies a patch shaped for its local `TestPolicy` (`{"cycle": …}`). T-113a gave `CoreModule` the real `CorePolicy`, which uses `deny_unknown_fields`, so `ensure_initial` correctly rejects the patch. Owner: T-106.
+  - **CI environment leaks into a test (harness).**
+    - `eq-identity::api_auth` `login_success`. The fixture loads `Config::from_env()`, and the `rust` job sets `RITMA_PUBLIC_URL=http://localhost:8080` for the T-113b database tests. With an `http` localhost origin the refresh cookie correctly omits `Secure`, so the assertion on `HttpOnly; Secure; …` fails. Owner: T-110a4.
+- **Follow-up:** One follow-up task per owner above makes its tests hermetic (Testcontainers through `eq-testkit::TestDb`, or a fixture config that does not read the job environment) or updates the stale expectation, and removes its entry from `.config/nextest.toml` in the same change. These tasks are not written here: the architect files them. Until then this list is the quarantine inventory.
+- **Why:** Option (a) weakens tests. Option (b) puts every task's private database name into CI and keeps the fixtures non-hermetic. Option (c) makes CI green with every exclusion named in one place, and none of the diagnosed failures is a product bug.
+- **Changed:** `.config/nextest.toml` (new), `.github/workflows/ci.yml` (`rust` job), generated `tasks/DECISIONS-INDEX.md`, this register.
+- **Ratify:** Yes.
+
+### TD-210 — Accept RUSTSEC-2026-0440 for a dev-only test dependency
+
+- **Question:** `cargo deny check advisories` fails on RUSTSEC-2026-0440 (`astral-tokio-tar` 0.6.4 is unmaintained, with no safe upgrade). The crate reaches the workspace only through `testcontainers` 0.28.0, a dev-dependency used by the test harnesses. `deny.toml` sets `unmaintained = "all"`, so the advisory blocks the rust CI job before any test runs (PR #21).
+- **Options:** (a) relax `unmaintained` or remove the advisory check; (b) upgrade or replace `testcontainers`; (c) accept this one advisory ID in `deny.toml` with a reason and an expiry, and record it here.
+- **Decision:** Option (c). `unmaintained = "all"` and the advisory check stay as they are.
+  - Route (b) is not possible today. `testcontainers` 0.28.0 is the newest release and depends on `astral-tokio-tar` unconditionally (no feature flag turns it off). 0.27.x and 0.26.x do too, and 0.26.4 is yanked.
+  - `deny.toml` `[advisories] ignore` gets one entry, `RUSTSEC-2026-0440`, with the reason "dev-only test dependency via testcontainers 0.28.0; not shipped; no safe upgrade (TD-210); expires 2026-12-31".
+- **Why:** The crate is test-only and is never compiled into a release artifact, so the advisory has no runtime exposure. Relaxing the check for every advisory would be a much wider weakening than one named exception.
+- **Limits:** cargo-deny 0.20.2 does not enforce an expiry date on an `ignore` entry. The expiry is a review date, and nothing fails automatically after 2026-12-31. A maintainer must re-check it at that date.
+- **Removal condition:** Remove the `deny.toml` entry as soon as `cargo tree -i astral-tokio-tar` shows no path. That happens when `testcontainers` (or the crate that pulls it) drops or replaces `astral-tokio-tar`.
+- **Changed:** `deny.toml` (`[advisories] ignore`), this register, generated `tasks/DECISIONS-INDEX.md`.
+- **Ratify:** Yes.
