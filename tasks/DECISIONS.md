@@ -1648,3 +1648,16 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** Option (a) weakens tests. Option (b) puts every task's private database name into CI and keeps the fixtures non-hermetic. Option (c) makes CI green with every exclusion named in one place, and none of the diagnosed failures is a product bug.
 - **Changed:** `.config/nextest.toml` (new), `.github/workflows/ci.yml` (`rust` job), generated `tasks/DECISIONS-INDEX.md`, this register.
 - **Ratify:** Yes.
+
+### TD-210 — Accept RUSTSEC-2026-0440 for a dev-only test dependency
+
+- **Question:** `cargo deny check advisories` fails on RUSTSEC-2026-0440 (`astral-tokio-tar` 0.6.4 is unmaintained, with no safe upgrade). The crate reaches the workspace only through `testcontainers` 0.28.0, a dev-dependency used by the test harnesses. `deny.toml` sets `unmaintained = "all"`, so the advisory blocks the rust CI job before any test runs (PR #21).
+- **Options:** (a) relax `unmaintained` or remove the advisory check; (b) upgrade or replace `testcontainers`; (c) accept this one advisory ID in `deny.toml` with a reason and an expiry, and record it here.
+- **Decision:** Option (c). `unmaintained = "all"` and the advisory check stay as they are.
+  - Route (b) is not possible today. `testcontainers` 0.28.0 is the newest release and depends on `astral-tokio-tar` unconditionally (no feature flag turns it off). 0.27.x and 0.26.x do too, and 0.26.4 is yanked.
+  - `deny.toml` `[advisories] ignore` gets one entry, `RUSTSEC-2026-0440`, with the reason "dev-only test dependency via testcontainers 0.28.0; not shipped; no safe upgrade (TD-210); expires 2026-12-31".
+- **Why:** The crate is test-only and is never compiled into a release artifact, so the advisory has no runtime exposure. Relaxing the check for every advisory would be a much wider weakening than one named exception.
+- **Limits:** cargo-deny 0.20.2 does not enforce an expiry date on an `ignore` entry. The expiry is a review date, and nothing fails automatically after 2026-12-31. A maintainer must re-check it at that date.
+- **Removal condition:** Remove the `deny.toml` entry as soon as `cargo tree -i astral-tokio-tar` shows no path. That happens when `testcontainers` (or the crate that pulls it) drops or replaces `astral-tokio-tar`.
+- **Changed:** `deny.toml` (`[advisories] ignore`), this register, generated `tasks/DECISIONS-INDEX.md`.
+- **Ratify:** Yes.

@@ -2,7 +2,7 @@
 
 Generated from `tasks/DECISIONS.md` by `scripts/decisions-index.py`. Do not edit by hand; CI runs `--check`.
 
-Total: 164 decisions.
+Total: 165 decisions.
 
 | ID | Decision | Ratify |
 |---|---|---|
@@ -170,3 +170,4 @@ Total: 164 decisions.
 | TD-207 | Add the missing public-project files (governance wave B) | Yes |
 | TD-208 | Production-readiness requirements and the two-approval exception (governance wave C) | Yes |
 | TD-209 | Quarantine the non-hermetic Rust tests in the CI nextest profile | Yes |
+| TD-210 | Accept RUSTSEC-2026-0440 for a dev-only test dependency | Yes |

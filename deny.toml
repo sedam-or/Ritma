@@ -2,7 +2,12 @@
 version = 2
 unmaintained = "all"
 yanked = "deny"
-ignore = []
+ignore = [
+  # Dev-only test dependency, never shipped: testcontainers 0.28.0 (the newest release) depends
+  # unconditionally on astral-tokio-tar, which Astral deprecated with no safe upgrade. Removal:
+  # drop this entry when testcontainers no longer pulls astral-tokio-tar (TD-210). Expires 2026-12-31.
+  { id = "RUSTSEC-2026-0440", reason = "dev-only test dependency via testcontainers 0.28.0; not shipped; no safe upgrade (TD-210); expires 2026-12-31" },
+]
 
 [licenses]
 version = 2
